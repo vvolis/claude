@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shnoogle</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100%;
+            padding: 50px 20px;
+        }
+        .logo {
+            font-size: 90px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .logo span:nth-child(1) { color: #4285F4; }
+        .logo span:nth-child(2) { color: #EA4335; }
+        .logo span:nth-child(3) { color: #FBBC05; }
+        .logo span:nth-child(4) { color: #4285F4; }
+        .logo span:nth-child(5) { color: #34A853; }
+        .logo span:nth-child(6) { color: #EA4335; }
+        .logo span:nth-child(7) { color: #4285F4; }
+        .search-box {
+            width: 560px;
+            max-width: 90%;
+            height: 44px;
+            border-radius: 24px;
+            border: 1px solid #dfe1e5;
+            padding: 0 20px;
+            font-size: 16px;
+            outline: none;
+        }
+        .search-box:hover, .search-box:focus {
+            box-shadow: 0 1px 6px rgba(32,33,36,.28);
+            border-color: rgba(223,225,229,0);
+        }
+        .buttons {
+            margin-top: 30px;
+        }
+        .buttons button {
+            background-color: #f8f9fa;
+            border: 1px solid #f8f9fa;
+            border-radius: 4px;
+            color: #3c4043;
+            font-size: 14px;
+            margin: 11px 4px;
+            padding: 0 16px;
+            line-height: 27px;
+            height: 36px;
+            min-width: 54px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .buttons button:hover {
+            box-shadow: 0 1px 1px rgba(0,0,0,.1);
+            background-color: #f8f9fa;
+            border: 1px solid #dadce0;
+            color: #202124;
+        }
+        #results {
+            margin-top: 20px;
+            width: 600px;
+            max-width: 90%;
+        }
+        .result {
+            margin-bottom: 20px;
+        }
+        .result h3 {
+            color: #1a0dab;
+            font-weight: normal;
+            margin: 0;
+            font-size: 18px;
+        }
+        .result .url {
+            color: #006621;
+            font-size: 14px;
+        }
+        .result .description {
+            color: #545454;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <span>S</span><span>h</span><span>n</span><span>o</span><span>o</span><span>g</span><span>le</span>
+        </div>
+        <input type="text" id="searchInput" class="search-box" placeholder="Search Shnoogle or type a URL">
+        <div class="buttons">
+            <button onclick="search()">Shnoogle Search</button>
+            <button onclick="feelingShnoogly()">I'm Feeling Shnoogly</button>
+        </div>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const resultTemplates = [
+            {
+                title: "{query} - Official Website",
+                url: "https://www.{query}.com",
+                description: "Welcome to the official website of {query}. Find all the information you need about {query} right here. Explore our products, services, and latest news."
+            },
+            {
+                title: "{query} - Shnooglepedia, the free encyclopedia",
+                url: "https://shnooglepedia.com/wiki/{query}",
+                description: "{query} is a topic of great interest. This Shnooglepedia article provides a comprehensive overview, including its history, significance, and various aspects related to {query}."
+            },
+            {
+                title: "Top 10 Facts About {query} - ShnoogleLists",
+                url: "https://shnooglelists.com/top-10-facts-{query}",
+                description: "Discover fascinating facts about {query}. Our expertly curated list covers everything from little-known trivia to major insights. #4 will surprise you!"
+            },
+            {
+                title: "{query} News - Latest Updates | ShnoogleNews",
+                url: "https://news.shnoogle.com/topic/{query}",
+                description: "Stay informed with the latest news and updates about {query}. Our comprehensive coverage includes breaking news, analysis, and expert opinions."
+            },
+            {
+                title: "Buy {query} Online - Shnamazon.com",
+                url: "https://www.shnamazon.com/s?k={query}",
+                description: "Shop for {query} on Shnamazon. Wide selection of products related to {query}. Enjoy fast shipping, great prices, and excellent customer service."
+            },
+            {
+                title: "{query} Images - Shnoogle Images Search",
+                url: "https://images.shnoogle.com/search?q={query}",
+                description: "Browse through a vast collection of images related to {query}. Find photos, illustrations, and graphics for any purpose."
+            },
+            {
+                title: "{query} Forum - Discuss Everything About {query}",
+                url: "https://www.shnoogleforums.com/topic/{query}",
+                description: "Join the conversation about {query}. Connect with enthusiasts, share your knowledge, and get answers to your questions in our active community forum."
+            },
+            {
+                title: "{query} Reviews - ShnoogleReviews",
+                url: "https://reviews.shnoogle.com/{query}",
+                description: "Read unbiased reviews about {query}. Our community of experts and users share their experiences and ratings to help you make informed decisions."
+            },
+            {
+                title: "Learn {query} Online - ShnoogleCourses",
+                url: "https://courses.shnoogle.com/subject/{query}",
+                description: "Master {query} with our online courses. From beginner to advanced levels, find the perfect learning path to enhance your knowledge and skills in {query}."
+            },
+            {
+                title: "{query} - Definition and Meaning | ShnoogleDictionary",
+                url: "https://dictionary.shnoogle.com/define/{query}",
+                description: "Explore the definition and meaning of {query}. Our comprehensive dictionary provides etymology, usage examples, and related terms to deepen your understanding."
+            }
+        ];
+
+        function search() {
+            const query = document.getElementById('searchInput').value;
+            const results = generateResults(query, 10); // Generate 10 random results
+            displayResults(results);
+        }
+
+        function generateResults(query, count) {
+            const results = [];
+            const usedIndexes = new Set();
+
+            for (let i = 0; i < count; i++) {
+                let randomIndex;
+                do {
+                    randomIndex = Math.floor(Math.random() * resultTemplates.length);
+                } while (usedIndexes.has(randomIndex));
+
+                usedIndexes.add(randomIndex);
+                const template = resultTemplates[randomIndex];
+                const result = {
+                    title: template.title.replace(/{query}/g, query),
+                    url: template.url.replace(/{query}/g, query.toLowerCase().replace(/\s+/g, '-')),
+                    description: template.description.replace(/{query}/g, query)
+                };
+                results.push(result);
+            }
+
+            return results;
+        }
+
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            results.forEach(result => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'result';
+                resultDiv.innerHTML = `
+                    <h3>${result.title}</h3>
+                    <div class="url">${result.url}</div>
+                    <div class="description">${result.description}</div>
+                `;
+                resultsDiv.appendChild(resultDiv);
+            });
+        }
+
+        function feelingShnoogly() {
+            const queries = [
+                "Artificial Intelligence", "Climate Change", "Quantum Computing", 
+                "Space Exploration", "Renewable Energy", "Virtual Reality", 
+                "Cryptocurrency", "Genetic Engineering", "3D Printing", 
+                "Internet of Things"
+            ];
+            const randomQuery = queries[Math.floor(Math.random() * queries.length)];
+            document.getElementById('searchInput').value = randomQuery;
+            search();
+        }
+    </script>
+</body>
+</html>
