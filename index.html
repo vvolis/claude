@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG City Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const GRID_SIZE = 30;
+        const CELL_SIZE = 25;
+
+        const HumanCharacter = ({ color, hairColor }) => (
+            <svg width={CELL_SIZE} height={CELL_SIZE} viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill={color} />
+                <circle cx="50" cy="30" r="20" fill={hairColor} />
+                <circle cx="40" cy="45" r="5" fill="white" />
+                <circle cx="60" cy="45" r="5" fill="white" />
+                <circle cx="40" cy="45" r="2" fill="black" />
+                <circle cx="60" cy="45" r="2" fill="black" />
+                <path d="M40 65 Q50 75 60 65" stroke="black" fill="none" strokeWidth="3" />
+            </svg>
+        );
+
+        const Character = ({ x, y, color, hairColor }) => (
+            <div style={{
+                position: 'absolute',
+                left: x * CELL_SIZE,
+                top: y * CELL_SIZE,
+                width: CELL_SIZE,
+                height: CELL_SIZE,
+                transition: 'all 0.3s',
+                zIndex: 10,
+            }}>
+                <HumanCharacter color={color} hairColor={hairColor} />
+            </div>
+        );
+
+        const NPC = ({ x, y, color, hairColor, voiceLine }) => {
+            const [showVoiceLine, setShowVoiceLine] = React.useState(false);
+
+            React.useEffect(() => {
+                const interval = setInterval(() => {
+                    setShowVoiceLine(true);
+                    setTimeout(() => setShowVoiceLine(false), 3000);
+                }, Math.random() * 10000 + 5000);
+
+                return () => clearInterval(interval);
+            }, []);
+
+            return (
+                <div style={{
+                    position: 'absolute',
+                    left: x * CELL_SIZE,
+                    top: y * CELL_SIZE,
+                    width: CELL_SIZE,
+                    height: CELL_SIZE,
+                    zIndex: 10,
+                }}>
+                    <Character x={0} y={0} color={color} hairColor={hairColor} />
+                    {showVoiceLine && (
+                        <div style={{
+                            position: 'absolute',
+                            top: -40,
+                            left: CELL_SIZE,
+                            backgroundColor: 'white',
+                            padding: '5px',
+                            borderRadius: '10px',
+                            whiteSpace: 'nowrap',
+                            border: '2px solid black',
+                            zIndex: 20,
+                        }}>
+                            {voiceLine}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const House = ({ x, y, width, height }) => (
+            <div style={{
+                position: 'absolute',
+                left: x * CELL_SIZE,
+                top: y * CELL_SIZE,
+                width: width * CELL_SIZE,
+                height: height * CELL_SIZE,
+                backgroundColor: '#F0E68C',
+                border: '2px solid #8B4513',
+                borderRadius: '5px',
+                zIndex: 5,
+            }}>
+                <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: '10%',
+                    width: '80%',
+                    height: '20%',
+                    backgroundColor: '#8B4513',
+                    clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
+                }} />
+                <div style={{
+                    position: 'absolute',
+                    bottom: '10%',
+                    left: '20%',
+                    width: '30%',
+                    height: '40%',
+                    backgroundColor: '#8B4513',
+                }} />
+                <div style={{
+                    position: 'absolute',
+                    top: '30%',
+                    right: '20%',
+                    width: '20%',
+                    height: '20%',
+                    backgroundColor: '#87CEEB',
+                    border: '2px solid #4682B4',
+                }} />
+            </div>
+        );
+
+        const Road = ({ x, y, width, height }) => (
+            <div style={{
+                position: 'absolute',
+                left: x * CELL_SIZE,
+                top: y * CELL_SIZE,
+                width: width * CELL_SIZE,
+                height: height * CELL_SIZE,
+                backgroundColor: '#808080',
+                zIndex: 1,
+            }}>
+                <div style={{
+                    position: 'absolute',
+                    top: '45%',
+                    width: '100%',
+                    height: '10%',
+                    backgroundColor: '#FFFFFF',
+                }} />
+            </div>
+        );
+
+        const Car = ({ x, y, color }) => (
+            <div style={{
+                position: 'absolute',
+                left: x * CELL_SIZE,
+                top: y * CELL_SIZE,
+                width: CELL_SIZE * 2,
+                height: CELL_SIZE,
+                backgroundColor: color,
+                borderRadius: '5px',
+                zIndex: 6,
+            }}>
+                <div style={{
+                    position: 'absolute',
+                    top: '20%',
+                    left: '60%',
+                    width: '30%',
+                    height: '40%',
+                    backgroundColor: '#87CEEB',
+                    border: '1px solid #4682B4',
+                }} />
+            </div>
+        );
+
+        const Tree = ({ x, y }) => (
+            <div style={{
+                position: 'absolute',
+                left: x * CELL_SIZE,
+                top: y * CELL_SIZE,
+                width: CELL_SIZE,
+                height: CELL_SIZE * 1.5,
+                zIndex: 5,
+            }}>
+                <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: '40%',
+                    width: '20%',
+                    height: '40%',
+                    backgroundColor: '#8B4513',
+                }} />
+                <div style={{
+                    position: 'absolute',
+                    bottom: '30%',
+                    left: 0,
+                    width: '100%',
+                    height: '70%',
+                    backgroundColor: '#228B22',
+                    borderRadius: '50%',
+                }} />
+            </div>
+        );
+
+        const Game = () => {
+            const [playerPos, setPlayerPos] = React.useState({ x: 15, y: 15 });
+            const [npcs, setNpcs] = React.useState([
+                { id: 1, x: 5, y: 5, color: '#FFB6C1', hairColor: '#8B4513', voiceLine: "Welcome to our city!" },
+                { id: 2, x: 25, y: 25, color: '#98FB98', hairColor: '#000000', voiceLine: "Nice weather today!" },
+                { id: 3, x: 7, y: 22, color: '#DDA0DD', hairColor: '#FFD700', voiceLine: "I love this place!" },
+            ]);
+
+            const houses = [
+                { x: 2, y: 2, width: 4, height: 3 },
+                { x: 22, y: 3, width: 5, height: 4 },
+                { x: 3, y: 24, width: 3, height: 3 },
+            ];
+
+            const roads = [
+                { x: 0, y: 14, width: 30, height: 2 },
+                { x: 14, y: 0, width: 2, height: 30 },
+            ];
+
+            const cars = [
+                { x: 1, y: 14, color: '#FF0000' },
+                { x: 25, y: 15, color: '#0000FF' },
+                { x: 14, y: 1, color: '#FFFF00' },
+                { x: 15, y: 26, color: '#00FF00' },
+            ];
+
+            const trees = [
+                { x: 5, y: 10 }, { x: 20, y: 8 }, { x: 25, y: 20 },
+                { x: 10, y: 25 }, { x: 18, y: 18 }, { x: 7, y: 2 },
+            ];
+
+            const movePlayer = React.useCallback((dx, dy) => {
+                setPlayerPos(prev => {
+                    const newX = Math.max(0, Math.min(GRID_SIZE - 1, prev.x + dx));
+                    const newY = Math.max(0, Math.min(GRID_SIZE - 1, prev.y + dy));
+                    
+                    const collision = houses.some(house => 
+                        newX >= house.x && newX < house.x + house.width &&
+                        newY >= house.y && newY < house.y + house.height
+                    );
+
+                    return collision ? prev : { x: newX, y: newY };
+                });
+            }, [houses]);
+
+            const handleKeyPress = React.useCallback((e) => {
+                switch(e.key) {
+                    case 'ArrowUp': movePlayer(0, -1); break;
+                    case 'ArrowDown': movePlayer(0, 1); break;
+                    case 'ArrowLeft': movePlayer(-1, 0); break;
+                    case 'ArrowRight': movePlayer(1, 0); break;
+                    default: break;
+                }
+            }, [movePlayer]);
+
+            React.useEffect(() => {
+                window.addEventListener('keydown', handleKeyPress);
+                return () => {
+                    window.removeEventListener('keydown', handleKeyPress);
+                };
+            }, [handleKeyPress]);
+
+            React.useEffect(() => {
+                const moveNPCs = setInterval(() => {
+                    setNpcs(prev => prev.map(npc => ({
+                        ...npc,
+                        x: Math.max(0, Math.min(GRID_SIZE - 1, npc.x + Math.floor(Math.random() * 3) - 1)),
+                        y: Math.max(0, Math.min(GRID_SIZE - 1, npc.y + Math.floor(Math.random() * 3) - 1)),
+                    })));
+                }, 2000);
+
+                return () => clearInterval(moveNPCs);
+            }, []);
+
+            return (
+                <div>
+                    <h1>Welcome to the RPG City</h1>
+                    <p>Use arrow keys to move the red character</p>
+                    <div style={{
+                        position: 'relative',
+                        width: GRID_SIZE * CELL_SIZE,
+                        height: GRID_SIZE * CELL_SIZE,
+                        backgroundColor: '#90EE90',
+                        border: '1px solid black',
+                        overflow: 'hidden',
+                    }}>
+                        {roads.map((road, index) => (
+                            <Road key={`road-${index}`} {...road} />
+                        ))}
+                        {houses.map((house, index) => (
+                            <House key={`house-${index}`} {...house} />
+                        ))}
+                        {cars.map((car, index) => (
+                            <Car key={`car-${index}`} {...car} />
+                        ))}
+                        {trees.map((tree, index) => (
+                            <Tree key={`tree-${index}`} {...tree} />
+                        ))}
+                        {npcs.map(npc => (
+                            <NPC key={npc.id} {...npc} />
+                        ))}
+                        <Character x={playerPos.x} y={playerPos.y} color="#FF6347" hairColor="#8B4513" />
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<Game />, document.getElementById('root'));
+    </script>
+</body>
+</html>
