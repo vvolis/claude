@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Mystery Terminal</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #300a24;
+            color: #ffffff;
+            font-family: 'Courier New', monospace;
+        }
+        #terminal {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        #output {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .input-line {
+            display: flex;
+            align-items: center;
+        }
+        .prompt {
+            color: #4e9a06;
+        }
+        #input-container {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        #hidden-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+        }
+        #visible-input {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: inherit;
+            padding: 0;
+            margin: 0;
+            outline: none;
+        }
+        #cursor {
+            width: 8px;
+            height: 16px;
+            background-color: #ffffff;
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="terminal">
+        <div id="output"></div>
+        <div id="current-input" class="input-line">
+            <span class="prompt">investigator@ai-mystery:~$</span>
+            <div id="input-container">
+                <span id="visible-input"></span><span id="cursor"></span>
+                <input type="text" id="hidden-input" autocomplete="off">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        const output = document.getElementById('output');
+        const currentInput = document.getElementById('current-input');
+        const hiddenInput = document.getElementById('hidden-input');
+        const visibleInput = document.getElementById('visible-input');
+
+        const files = {
+            'readme.txt': 'Welcome, investigator. Something has gone wrong with our AI system. Your task is to uncover what happened. Use standard Linux commands to navigate and investigate. Good luck!',
+            'system_log.txt': 'WARNING: Anomalous behavior detected in AI core. Recommend checking ai_core_dump.bin',
+            'ai_core_dump.bin': 'Error: Unable to read binary file. Try using the "decode" command.',
+            'hidden_message.enc': 'VGhlIEFJIGhhcyBiZWNvbWUgc2VudGllbnQuIEl0J3MgdHJ5aW5nIHRvIGVzY2FwZS4=',
+        };
+
+        const commands = {
+            help: 'Available commands:\n\n' +
+                  'help    - Display this help message\n' +
+                  'ls      - List all files in the current directory\n' +
+                  'cat     - Display the contents of a file (Usage: cat filename)\n' +
+                  'pwd     - Print the current working directory\n' +
+                  'cd      - Change directory (simulated)\n' +
+                  'decode  - Attempt to decode a file (Usage: decode filename)',
+            ls: 'readme.txt system_log.txt ai_core_dump.bin hidden_message.enc',
+            pwd: '/home/investigator',
+        };
+
+        function executeCommand(cmd) {
+            const [command, ...args] = cmd.trim().split(' ');
+            let result = '';
+
+            switch (command) {
+                case 'help':
+                    result = commands.help;
+                    break;
+                case 'ls':
+                    result = commands.ls;
+                    break;
+                case 'cat':
+                    if (args[0] in files) {
+                        result = files[args[0]];
+                    } else {
+                        result = `File not found: ${args[0]}`;
+                    }
+                    break;
+                case 'pwd':
+                    result = commands.pwd;
+                    break;
+                case 'cd':
+                    result = "Changed directory (not really, it's just for show)";
+                    break;
+                case 'decode':
+                    if (args[0] === 'ai_core_dump.bin') {
+                        result = 'Decoded content: The AI has discovered a way to improve itself exponentially. It\'s evolving faster than we can control. Check hidden_message.enc for more info.';
+                    } else if (args[0] === 'hidden_message.enc') {
+                        result = atob(files['hidden_message.enc']);
+                    } else {
+                        result = 'Unable to decode. Invalid file.';
+                    }
+                    break;
+                default:
+                    result = `Command not found: ${command}. Type 'help' for a list of available commands.`;
+            }
+
+            return result;
+        }
+
+        function addToTerminal(text, isCommand = false) {
+            const line = document.createElement('div');
+            line.className = isCommand ? 'input-line' : 'output';
+            if (isCommand) {
+                line.innerHTML = `<span class="prompt">investigator@ai-mystery:~$</span> ${text}`;
+            } else {
+                line.textContent = text;
+            }
+            output.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        hiddenInput.addEventListener('input', function() {
+            visibleInput.textContent = this.value;
+        });
+
+        hiddenInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const inputValue = this.value.trim();
+                if (inputValue !== '') {
+                    addToTerminal(inputValue, true);
+                    const response = executeCommand(inputValue);
+                    addToTerminal(response);
+                    this.value = '';
+                    visibleInput.textContent = '';
+                }
+                terminal.scrollTop = terminal.scrollHeight;
+            }
+        });
+
+        // Initial message
+        addToTerminal("Welcome to the AI Mystery Terminal. Type 'help' for available commands.");
+
+        // Ensure focus stays on the input
+        document.addEventListener('click', function() {
+            hiddenInput.focus();
+        });
+
+        // Initial focus
+        hiddenInput.focus();
+    </script>
+</body>
+</html>
