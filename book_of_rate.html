@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exchange Rate Collector with Slot Machines Grid</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.2/babel.min.js"></script>
+    <style>
+        /* Previous styles remain the same */
+        .bg-gray-800 { background-color: #1f2937; }
+        .bg-gray-700 { background-color: #374151; }
+        .bg-gray-600 { background-color: #4b5563; }
+        .bg-green-600 { background-color: #059669; }
+        .bg-green-700 { background-color: #047857; }
+        .bg-red-600 { background-color: #dc2626; }
+        .bg-red-700 { background-color: #b91c1c; }
+        .bg-blue-600 { background-color: #2563eb; }
+        .bg-blue-700 { background-color: #1d4ed8; }
+        .bg-yellow-600 { background-color: #ca8a04; }
+        .bg-yellow-700 { background-color: #a16207; }
+        .bg-purple-600 { background-color: #9333ea; }
+        .bg-purple-700 { background-color: #7e22ce; }
+        .text-white { color: #ffffff; }
+        .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+        .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+        .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+        .font-bold { font-weight: 700; }
+        .font-semibold { font-weight: 600; }
+        .font-medium { font-weight: 500; }
+        .p-6 { padding: 1.5rem; }
+        .p-4 { padding: 1rem; }
+        .p-2 { padding: 0.5rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        .rounded-lg { border-radius: 0.5rem; }
+        .rounded { border-radius: 0.25rem; }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .grid { display: grid; }
+        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .gap-4 { gap: 1rem; }
+        .gap-2 { gap: 0.5rem; }
+        .h-8 { height: 2rem; }
+        .w-full { width: 100%; }
+        .max-w-md { max-width: 28rem; }
+        .block { display: block; }
+        .inline-block { display: inline-block; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .text-center { text-align: center; }
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        /* Updated styles for slot machine grid */
+        body {
+            background-color: #1a202c;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow: hidden;
+        }
+        button:hover { opacity: 0.9; }
+        .slot-machine-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 10px;
+            padding: 10px;
+            box-sizing: border-box;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .slot-machine {
+            background-color: rgba(240, 240, 240, 0.1);
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.5s ease-out;
+        }
+        .slot-machine.appear {
+            opacity: 1;
+            animation: slotAppear 0.5s ease-out, slotSpin 2s ease-in-out;
+        }
+        @keyframes slotAppear {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+        @keyframes slotSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(720deg); }
+        }
+        .content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const Button = ({ children, className, ...props }) => (
+            <button className={`px-4 py-2 rounded ${className}`} {...props}>
+                {children}
+            </button>
+        );
+
+        const SlotMachineGrid = ({ trigger }) => {
+            const [machines, setMachines] = React.useState(Array(25).fill(false));
+
+            React.useEffect(() => {
+                const newMachines = machines.map(() => Math.random() > 0.5);
+                setMachines(newMachines);
+                setTimeout(() => setMachines(Array(25).fill(false)), 2000);
+            }, [trigger]);
+
+            return (
+                <div className="slot-machine-grid">
+                    {machines.map((active, index) => (
+                        <div key={index} className={`slot-machine ${active ? 'appear' : ''}`}>
+                            🎰
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        const ExchangeRateCollector = () => {
+            const [spinning, setSpinning] = React.useState(false);
+            const [rate, setRate] = React.useState(0);
+            const [quantity, setQuantity] = React.useState(0);
+            const [triggerSlotMachines, setTriggerSlotMachines] = React.useState(0);
+
+            const spin = () => {
+                setSpinning(true);
+                setTriggerSlotMachines(prev => prev + 1);
+                setTimeout(() => {
+                    setRate(Math.random().toFixed(4));
+                    setQuantity(Math.floor(Math.random() * 1000));
+                    setSpinning(false);
+                }, 2000);
+            };
+
+            const handleButtonClick = (action) => {
+                setTriggerSlotMachines(prev => prev + 1);
+                if (action === 'spin') spin();
+            };
+
+            return (
+                <>
+                    <SlotMachineGrid trigger={triggerSlotMachines} />
+                    <div className="content">
+                        <div className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md mx-auto text-white">
+                            <h1 className="text-2xl font-bold mb-4 text-center">Book of Rate</h1>
+                            <div className="bg-gray-700 p-4 rounded-lg mb-4">
+                                <h2 className="text-xl font-semibold mb-2">Dudes #1</h2>
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">R:</label>
+                                        <div className="bg-gray-600 h-8 rounded flex items-center justify-center">
+                                            {spinning ? (
+                                                <span className="animate-spin inline-block">🎰</span>
+                                            ) : (
+                                                rate
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Q:</label>
+                                        <div className="bg-gray-600 h-8 rounded flex items-center justify-center">
+                                            {spinning ? (
+                                                <span className="animate-spin inline-block">🎰</span>
+                                            ) : (
+                                                quantity
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                    <Button className="bg-green-600 hover:bg-green-700" onClick={() => handleButtonClick('buy')}>Buy</Button>
+                                    <Button className="bg-red-600 hover:bg-red-700" onClick={() => handleButtonClick('sell')}>Sell</Button>
+                                </div>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium mb-1">Margin:</label>
+                                    <input type="text" value="0.0005" readOnly className="bg-gray-600 w-full p-2 rounded" />
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => handleButtonClick('spin')}>Start</Button>
+                                    <Button className="bg-yellow-600 hover:bg-yellow-700" onClick={() => handleButtonClick('stop')}>Stop</Button>
+                                    <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => handleButtonClick('demo')}>Demo</Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            );
+        };
+
+        ReactDOM.render(<ExchangeRateCollector />, document.getElementById('root'));
+    </script>
+</body>
+</html>
